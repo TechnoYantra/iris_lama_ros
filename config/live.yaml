@@ -36,3 +36,4 @@
   ros__parameters:
     transform_tolerance: 0.1
     use_sim_time: True
+    map_topic: /map

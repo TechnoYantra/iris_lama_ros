@@ -93,6 +93,7 @@ namespace lama {
         std::string odom_frame_id_;         ///< Odometry frame id.
         std::string base_frame_id_;         ///< Robot base frame.
 
+        std::string map_topic_;         ///< Map Topic.
         std::string scan_topic_;   ///< LaserScan message topic.
 
         rclcpp::Duration transform_tolerance_;   ///< Defines how long map->odom transform is good for.

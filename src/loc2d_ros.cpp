@@ -47,6 +47,8 @@ lama::Loc2DROS::Loc2DROS(const std::string &name) :
     node->get_parameter_or("base_frame_id", base_frame_id_, std::string("base_link"));
     node->declare_parameter("scan_topic");
     node->get_parameter_or("scan_topic", scan_topic_, std::string("/scan"));
+    node->declare_parameter("map_topic");
+    node->get_parameter_or("map_topic", map_topic_, std::string("/map"));
     node->declare_parameter("transform_tolerance");
     node->get_parameter_or("transform_tolerance", tmp, 0.1);
     transform_tolerance_ = rclcpp::Duration::from_seconds(tmp);
@@ -72,14 +74,14 @@ lama::Loc2DROS::Loc2DROS(const std::string &name) :
 
     // Get map
     RCLCPP_INFO(node->get_logger(), "Requesting the map...");
-    auto client = node->create_client<nav_msgs::srv::GetMap>("/map");
+    auto client = node->create_client<nav_msgs::srv::GetMap>(map_topic_);
     auto request = std::make_shared<nav_msgs::srv::GetMap::Request>();
     while (!client->wait_for_service(std::chrono::seconds(1))) {
         if (!rclcpp::ok()) {
-            RCLCPP_ERROR(node->get_logger(), "Interrupted while waiting for the /map service. Exiting.");
+            RCLCPP_ERROR(node->get_logger(), "Interrupted while waiting for the %s service. Exiting.",map_topic_);
             return;
         }
-        RCLCPP_INFO(node->get_logger(), "service not available, waiting again...");
+        RCLCPP_INFO(node->get_logger(), "%s service not available, waiting again...", map_topic_);
     }
 
     // Wait for the result.
@@ -88,7 +90,7 @@ lama::Loc2DROS::Loc2DROS(const std::string &name) :
     {
         RCLCPP_INFO(node->get_logger(), "Got map");
     } else {
-        RCLCPP_ERROR(node->get_logger(), "Failed to call /map service");
+        RCLCPP_ERROR(node->get_logger(), "Failed to call %s service",map_topic_);
         return;
     }
 
