@@ -40,64 +40,64 @@ lama::Slam2DROS::Slam2DROS(std::string name) :
 
     // Load parameters from the server.
     double tmp;
-    node->declare_parameter("global_frame_id");
+    node->declare_parameter<std::string>("global_frame_id", std::string("map"));
     node->get_parameter_or("global_frame_id", global_frame_id_, std::string("map"));
-    node->declare_parameter("odom_frame_id");
+    node->declare_parameter<std::string>("odom_frame_id", std::string("odom"));
     node->get_parameter_or("odom_frame_id", odom_frame_id_, std::string("odom"));
-    node->declare_parameter("base_frame_id");
+    node->declare_parameter<std::string>("base_frame_id", std::string("base_link"));
     node->get_parameter_or("base_frame_id", base_frame_id_, std::string("base_link"));
-    node->declare_parameter("scan_topic");
+    node->declare_parameter<std::string>("scan_topic", std::string("/scan"));
     node->get_parameter_or("scan_topic", scan_topic_, std::string("/scan"));
-    node->declare_parameter("transform_tolerance");
+    node->declare_parameter<double>("transform_tolerance", 0.1);
     node->get_parameter_or("transform_tolerance", tmp, 0.1);
     transform_tolerance_ = rclcpp::Duration::from_seconds(tmp);
 
     Vector2d pos;
-    node->declare_parameter("initial_pos_x");
+    node->declare_parameter<double>("initial_pos_x", 0.0);
     node->get_parameter_or("initial_pos_x", pos[0], 0.0);
-    node->declare_parameter("initial_pos_y");
+    node->declare_parameter<double>("initial_pos_y", 0.0);
     node->get_parameter_or("initial_pos_y", pos[1], 0.0);
-    node->declare_parameter("initial_pos_a");
+    node->declare_parameter<double>("initial_pos_a", 0.0);
     node->get_parameter_or("initial_pos_a", tmp, 0.0);
     Pose2D prior(pos, tmp);
 
     Slam2D::Options options;
-    node->declare_parameter("d_thresh");
+    node->declare_parameter<double>("d_thresh", 0.01);
     node->get_parameter_or("d_thresh", options.trans_thresh, 0.01);
-    node->declare_parameter("a_thresh");
+    node->declare_parameter<double>("a_thresh", 0.25);
     node->get_parameter_or("a_thresh", options.rot_thresh, 0.25);
-    node->declare_parameter("l2_max");
+    node->declare_parameter<double>("l2_max", 0.5);
     node->get_parameter_or("l2_max", options.l2_max, 0.5);
-    node->declare_parameter("truncate");
+    node->declare_parameter<double>("truncate", 0.0);
     node->get_parameter_or("truncate", options.truncated_ray, 0.0);
-    node->declare_parameter("resolution");
+    node->declare_parameter<double>("resolution", 0.05);
     node->get_parameter_or("resolution", options.resolution, 0.05);
-    node->declare_parameter("strategy");
+    node->declare_parameter<std::string>("strategy", std::string("gn"));
     node->get_parameter_or("strategy", options.strategy, std::string("gn"));
-    node->declare_parameter("use_compression");
+    node->declare_parameter<bool>("use_compression", false);
     node->get_parameter_or("use_compression", options.use_compression, false);
-    node->declare_parameter("compression_algorithm");
+    node->declare_parameter<std::string>("compression_algorithm", std::string("lz4"));
     node->get_parameter_or("compression_algorithm", options.calgorithm, std::string("lz4"));
-    node->declare_parameter("mrange");
+    node->declare_parameter<double>("mrange", 16.0);
     node->get_parameter_or("mrange", max_range_, 16.0);
 
     int itmp;
-    node->declare_parameter("max_iterations");
+    node->declare_parameter<int>("max_iterations", 100);
     node->get_parameter_or("max_iterations", itmp, 100);
     options.max_iter = itmp;
-    node->declare_parameter("patch_size");
+    node->declare_parameter<int>("patch_size", 32);
     node->get_parameter_or("patch_size", itmp, 32);
     options.patch_size = itmp;
-    node->declare_parameter("cache_size");
+    node->declare_parameter<int>("cache_size", 100);
     node->get_parameter_or("cache_size", itmp, 100);
     options.cache_size = itmp;
 
-    node->declare_parameter("create_summary");
+    node->declare_parameter<bool>("create_summary", false);
     node->get_parameter_or("create_summary", options.create_summary, false);
 
     //periodic_publish_ = nh->create_wall_timer(rclcpp::Duration(tmp), std::bind(&Slam2DROS::publishCallback, this));
     // https://docs.ros2.org/beta3/api/rclcpp/classrclcpp_1_1node_1_1Node.html
-    node->declare_parameter("map_publish_period");
+    node->declare_parameter<double>("map_publish_period", 5.0);
     node->get_parameter_or("map_publish_period", tmp, 5.0);
     periodic_publish_ = node->create_wall_timer(
             std::chrono::duration_cast<std::chrono::nanoseconds>(
@@ -434,7 +434,7 @@ int main(int argc, char *argv[]) {
 
     rclcpp::init(argc, argv);
     lama::Slam2DROS slam2d_ros{"slam2d_ros"};
-    slam2d_ros.node->declare_parameter("rosbag");
+    slam2d_ros.node->declare_parameter<bool>("rosbag",false);
     bool using_rosbag;
     slam2d_ros.node->get_parameter("rosbag", using_rosbag);
     if(using_rosbag) {

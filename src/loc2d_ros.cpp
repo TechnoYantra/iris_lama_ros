@@ -39,17 +39,17 @@ lama::Loc2DROS::Loc2DROS(const std::string &name) :
 
     // Load parameters from the server.
     double tmp;
-    node->declare_parameter("global_frame_id");
+    node->declare_parameter<std::string>("global_frame_id", std::string("map"));
     node->get_parameter_or("global_frame_id", global_frame_id_, std::string("map"));
-    node->declare_parameter("odom_frame_id");
+    node->declare_parameter<std::string>("odom_frame_id", std::string("odom"));
     node->get_parameter_or("odom_frame_id", odom_frame_id_, std::string("odom"));
-    node->declare_parameter("base_frame_id");
+    node->declare_parameter<std::string>("base_frame_id", std::string("base_link"));
     node->get_parameter_or("base_frame_id", base_frame_id_, std::string("base_link"));
-    node->declare_parameter("scan_topic");
+    node->declare_parameter<std::string>("scan_topic", std::string("/scan"));
     node->get_parameter_or("scan_topic", scan_topic_, std::string("/scan"));
-    node->declare_parameter("map_topic");
+    node->declare_parameter<std::string>("map_topic", std::string("/map"));
     node->get_parameter_or("map_topic", map_topic_, std::string("/map"));
-    node->declare_parameter("transform_tolerance");
+    node->declare_parameter<double>("transform_tolerance",0.1);
     node->get_parameter_or("transform_tolerance", tmp, 0.1);
     transform_tolerance_ = rclcpp::Duration::from_seconds(tmp);
 
@@ -78,15 +78,16 @@ lama::Loc2DROS::Loc2DROS(const std::string &name) :
     auto request = std::make_shared<nav_msgs::srv::GetMap::Request>();
     while (!client->wait_for_service(std::chrono::seconds(1))) {
         if (!rclcpp::ok()) {
-            RCLCPP_ERROR(node->get_logger(), "Interrupted while waiting for the %s service. Exiting.",map_topic_);
+            RCLCPP_ERROR(node->get_logger(), "Interrupted while waiting for the %s service. Exiting.",map_topic_.c_str());
             return;
         }
-        RCLCPP_INFO(node->get_logger(), "%s service not available, waiting again...", map_topic_);
+        RCLCPP_INFO(node->get_logger(), "%s service not available, waiting again...", map_topic_.c_str());
     }
 
     // Wait for the result.
     auto result_future = client->async_send_request(request);
-    if (rclcpp::spin_until_future_complete(node, result_future) == rclcpp::executor::FutureReturnCode::SUCCESS)
+    // if (rclcpp::spin_until_future_complete(node, result_future) == rclcpp::executor::FutureReturnCode::SUCCESS)
+    if (rclcpp::spin_until_future_complete(node, result_future) == rclcpp::FutureReturnCode::SUCCESS)
     {
         RCLCPP_INFO(node->get_logger(), "Got map");
     } else {
